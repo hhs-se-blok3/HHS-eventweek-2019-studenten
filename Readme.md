@@ -104,7 +104,7 @@ in the project root, you can view them by opening apidocs/index.html in any brow
 
 The project contains methods you need to implement. You can run the tests from your IDE or with Maven:
 ```
-mvn clean:test
+mvn clean test
 ```
 You can find all the tests in the "src/test/java" directory.
 After checking out the project most of the tests will fail. Start writing implementations for the test methods with 
