@@ -30,7 +30,15 @@ public class CardMoveChecks {
      * @throws MoveException on syntax error
      */
     public static void checkPlayerInput(String[] input) throws MoveException{
-        // TODO: Write implementation
+        if (input.length != 3) throw new MoveException("Invalid Move syntax. See " + helpInstructions + " for instructions.");
+        if(!input[1].matches("O|S[A-D]|[A-G]\\d{1,2}")) { // regex, matching O, S[A-D], [A-G][0-99]
+            throw new MoveException("Invalid Move syntax. \"" + input[1] + "\" is not a valid source location.\n" +
+                "See " + helpInstructions + " for instructions.");
+        }
+        if(!input[2].matches("O|S[A-D]|[A-G]")) { // regex, matching O, S[A-D], [A-G]
+            throw new MoveException("Invalid Move syntax. \"" + input[2] + "\" is not a valid destination location.\n" +
+                "See " + helpInstructions + " for instructions.");
+        }
     }
 
     /**
