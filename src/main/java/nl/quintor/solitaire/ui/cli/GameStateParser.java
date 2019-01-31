@@ -40,8 +40,46 @@ class GameStateParser {
      *  @return a visual representation of the gameState (for monospace terminal printing)
      */
     static String parseGameState(GameState gameState){
-        // TODO: Write implementation
-        return "";
+        StringBuilder builder = new StringBuilder();
+
+        // row 1: empty first column, score and game time
+        builder.append(gameState + "\n\n");
+
+        // row 2: empty column 1, stock header, empty column 3-4, 4x capital letter stack header
+        padNAdd(builder, "", FIRST_COLUMN_WIDTH);
+        padNAdd(builder, "O (" + (gameState.getStock().size() + gameState.getWaste().size()) + ")", COLUMN_WIDTH);
+        for (int i = 0; i<2; i++) padNAdd(builder, "", COLUMN_WIDTH);
+        gameState.getStackPiles().keySet().forEach(header -> padNAdd(builder, header, COLUMN_WIDTH));
+        builder.append("\n");
+
+        // row 3: empty first column, stock with card counter, two empty columns, 4x stack
+        padNAdd(builder, "", FIRST_COLUMN_WIDTH);
+        String topStockCardString = getCardStringOrNull(gameState.getStock(), gameState.getStock().size()-1);
+        padNAdd(builder, topStockCardString != null ? topStockCardString : "_ _", COLUMN_WIDTH);
+        padNAdd(builder, "", COLUMN_WIDTH);
+        padNAdd(builder, "", COLUMN_WIDTH);
+        gameState.getStackPiles().values().stream()
+            .map(stack -> getCardStringOrNull(stack, stack.size() - 1))
+            .forEach(cardString -> padNAdd(builder, cardString != null ? cardString : "_ _", COLUMN_WIDTH));
+
+        // row 4: blank
+        builder.append("\n\n");
+
+        // row 5: empty first column, 7x capital letter column header
+        padNAdd(builder, "", FIRST_COLUMN_WIDTH);
+        gameState.getColumns().keySet().forEach(header -> padNAdd(builder, header, COLUMN_WIDTH));
+        builder.append("\n");
+
+        // row 6-n: row header int, card in row for each column in the gamestate
+        for (int row = 0; true; row++) {
+            padNAdd(builder, String.format("%" + (FIRST_COLUMN_WIDTH-1) + "s", row), FIRST_COLUMN_WIDTH);
+            if (!printRow(builder, gameState.getColumns().values(), row)) break;
+            builder.append("\n");
+        }
+
+        builder.append("\n");
+
+        return builder.toString();
     }
 
     /**
@@ -56,8 +94,13 @@ class GameStateParser {
      * @return did the row contain any cards
      */
     protected static boolean printRow(StringBuilder builder, Collection<Deck> columns, int row){
-        // TODO: Write implementation
-        return true;
+        boolean cardsLeft = false;
+        for(Deck column : columns){
+            String cardString = row < column.getInvisibleCards() ? "? ?" : getCardStringOrNull(column, row);
+            if (cardString != null) cardsLeft = true;
+            padNAdd(builder, cardString != null ? cardString : "", COLUMN_WIDTH);
+        }
+        return cardsLeft;
     }
 
     /**
@@ -68,8 +111,11 @@ class GameStateParser {
      * @return the requested card or null
      */
     protected static String getCardStringOrNull(Deck deck, int index){
-        // TODO: Write implementation
-        return null;
+        try{
+            return deck.get(index).toShortString();
+        } catch (IndexOutOfBoundsException e){
+            return null;
+        }
     }
 
     /**
@@ -81,6 +127,6 @@ class GameStateParser {
      * @param totalLength The total length that the String must become
      */
     protected static void padNAdd(StringBuilder builder, String string, int totalLength){
-        // TODO: Write implementation
+        builder.append(String.format("%-" + totalLength + "s", (string.length() == 1) ? " " + string : string));
     }
 }

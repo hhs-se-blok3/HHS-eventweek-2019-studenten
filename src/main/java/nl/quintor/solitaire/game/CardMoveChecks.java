@@ -53,7 +53,21 @@ public class CardMoveChecks {
      * @throws MoveException on illegal move
      */
     public static void deckLevelChecks(Deck sourceDeck, int sourceCardIndex, Deck destinationDeck) throws MoveException {
-        // TODO: Write implementation
+        // destination cannot be same as source and it cannot be the stock
+        if (destinationDeck == sourceDeck) throw new MoveException("Move source and destination can't be the same");
+        if (destinationDeck.getDeckType() == DeckType.STOCK) throw new MoveException("You can't move cards to the stock");
+
+        // source cannot be empty
+        if (sourceDeck.size() == 0) throw new MoveException("You can't move a card from an empty deck");
+
+        // if source is a column, the source card must be visible
+        if (sourceDeck.getDeckType() == DeckType.COLUMN && sourceCardIndex < sourceDeck.getInvisibleCards())
+            throw new MoveException("You can't move an invisible card");
+
+        // if destination is a stack, only 1 card can be moved (only has to be checked for a column source)
+        if (destinationDeck.getDeckType() == DeckType.STACK && sourceDeck.getDeckType() == DeckType.COLUMN
+            && sourceCardIndex != sourceDeck.size() - 1)
+            throw new MoveException("You can't move more than 1 card at a time to a Stack Pile");
     }
 
     /**
@@ -67,7 +81,12 @@ public class CardMoveChecks {
      * @throws MoveException on illegal move
      */
     public static void cardLevelChecks(Deck targetDeck, Card cardToAdd) throws MoveException {
-        // TODO: Write implementation
+        Card targetCard = targetDeck.size() > 0 ? targetDeck.get(targetDeck.size() - 1) : null;
+        if (targetDeck.getDeckType() == DeckType.STACK) {
+            checkStackMove(targetCard, cardToAdd);
+        } else if (targetDeck.getDeckType() == DeckType.COLUMN) {
+            checkColumnMove(targetCard, cardToAdd);
+        } else throw new MoveException("Target deck is neither Stack nor Column.");
     }
 
     // Helper methods
@@ -80,7 +99,16 @@ public class CardMoveChecks {
      * @throws MoveException on illegal move
      */
     static void checkStackMove(Card targetCard, Card cardToAdd) throws MoveException {
-        // TODO: Write implementation
+        // first card must be an Ace
+        if (targetCard == null && cardToAdd.getRank() != Rank.ACE)
+            throw new MoveException("An Ace has to be the first card of a Stack Pile");
+        // follow-up cards must be of the same suit as the targetCard
+        if (targetCard != null && targetCard.getSuit() != cardToAdd.getSuit())
+            throw new MoveException("Stack Piles can only contain same-suit cards");
+        // stack cards have to be added in the correct increasing low-aces rank order
+        if (targetCard != null && !(cardToAdd.getRank().ordinal() == 0 ||
+            cardToAdd.getRank().ordinal() == targetCard.getRank().ordinal() + 1))
+            throw new MoveException("Stack Piles hold same-suit cards of increasing Rank from Ace to King");
     }
 
     /**
@@ -91,7 +119,15 @@ public class CardMoveChecks {
      * @throws MoveException on illegal move
      */
     static void checkColumnMove(Card targetCard, Card cardToAdd) throws MoveException {
-        /// TODO: Write implementation
+        // first card must be a King
+        if (targetCard == null && cardToAdd.getRank() != Rank.KING)
+            throw new MoveException("A King has to be the first card of a Column");
+        // follow-up cards must be of of the opposing color
+        if (targetCard != null && !opposingColor(targetCard, cardToAdd))
+            throw new MoveException("Column cards have te alternate colors (red and black)");
+        // column cards have to be added in the correct decreasing rank order
+        if (targetCard != null && cardToAdd.getRank().ordinal() != targetCard.getRank().ordinal() - 1)
+            throw new MoveException("Columns hold alternating-color cards of decreasing rank from King to Two");
     }
 
     /**
@@ -102,8 +138,7 @@ public class CardMoveChecks {
      * @return true if the cards are of different colors
      */
     static boolean opposingColor(Card card1, Card card2){
-        // TODO: Write implementation
-        return true;
+        return (redSuit(card1) && !redSuit(card2)) || (!redSuit(card1) && redSuit(card2));
     }
 
     /**
